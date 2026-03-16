@@ -44,4 +44,26 @@ class ShoppingItem {
       'auto_add': autoAdd,
     };
   }
+
+  ShoppingItem copyWith({
+    String? id,
+    String? name,
+    String? qty,
+    String? category,
+    String? store,
+    String? expiry,
+    String? status,
+    bool? autoAdd,
+  }) {
+    return ShoppingItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      qty: qty ?? this.qty,
+      category: category ?? this.category,
+      store: store ?? this.store,
+      expiry: expiry ?? this.expiry,
+      status: status ?? this.status,
+      autoAdd: autoAdd ?? this.autoAdd,
+    );
+  }
 }

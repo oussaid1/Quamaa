@@ -4,15 +4,39 @@ import '../domain/shopping_item.dart';
 class ShoppingRepository {
   /// Fetch shopping items. Falls back to demo data if Supabase isn't ready.
   Future<List<ShoppingItem>> fetchAll() async {
-    if (!SupabaseInitializer.isReady) {
-      return _demoItems;
-    }
-    final res = await SupabaseInitializer.client
-        .from('shopping_items')
-        .select();
+    if (!SupabaseInitializer.isReady) return _demoItems;
+
+    final user = SupabaseInitializer.client.auth.currentUser;
+    final query = SupabaseInitializer.client.from('shopping_items').select();
+    final res = user == null ? await query : await query.eq('user_id', user.id);
     return (res as List<dynamic>)
         .map((row) => ShoppingItem.fromMap(row as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<void> insert(ShoppingItem item) async {
+    if (!SupabaseInitializer.isReady) return;
+    final user = SupabaseInitializer.client.auth.currentUser;
+    await SupabaseInitializer.client.from('shopping_items').insert({
+      ...item.toMap(),
+      if (user != null) 'user_id': user.id,
+    });
+  }
+
+  Future<void> updateAutoAdd(String id, bool autoAdd) async {
+    if (!SupabaseInitializer.isReady) return;
+    await SupabaseInitializer.client
+        .from('shopping_items')
+        .update({'auto_add': autoAdd})
+        .eq('id', id);
+  }
+
+  Future<void> delete(String id) async {
+    if (!SupabaseInitializer.isReady) return;
+    await SupabaseInitializer.client
+        .from('shopping_items')
+        .delete()
+        .eq('id', id);
   }
 }
 

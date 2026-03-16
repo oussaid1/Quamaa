@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/shopping_providers.dart';
+import '../providers/shopping_controllers.dart';
 import '../widgets/shopping_tile.dart';
 
 class ShoppingListScreen extends ConsumerWidget {
@@ -10,7 +10,8 @@ class ShoppingListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filters = ['الكل', 'منخفض', 'نفد', 'منتهي قريبًا', 'المتجر'];
-    final itemsAsync = ref.watch(shoppingItemsProvider);
+    final state = ref.watch(shoppingControllerProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -29,19 +30,63 @@ class ShoppingListScreen extends ConsumerWidget {
           ),
         ),
         Expanded(
-          child: itemsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text('Error: $err')),
-            data: (items) => ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              children: [
-                const _StoreHeader('كارفور'),
-                ...items.take(3).map((item) => ShoppingTile(item)),
-                const SizedBox(height: 12),
-                const _StoreHeader('بقالة الحي'),
-                ...items.skip(3).map((item) => ShoppingTile(item)),
-              ],
+          child: RefreshIndicator(
+            onRefresh: () =>
+                ref.read(shoppingControllerProvider.notifier).refresh(),
+            child: state.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) => _ErrorRetry(
+                message: '$err',
+                onRetry: () =>
+                    ref.read(shoppingControllerProvider.notifier).refresh(),
+              ),
+              data: (items) => ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                children: [
+                  const _StoreHeader('كارفور'),
+                  ...items
+                      .take(3)
+                      .map(
+                        (item) => ShoppingTile(
+                          item,
+                          onToggleAutoAdd: (val) => ref
+                              .read(shoppingControllerProvider.notifier)
+                              .updateAutoAdd(item.id, val),
+                          onDelete: () => ref
+                              .read(shoppingControllerProvider.notifier)
+                              .deleteItem(item.id),
+                        ),
+                      ),
+                  const SizedBox(height: 12),
+                  const _StoreHeader('بقالة الحي'),
+                  ...items
+                      .skip(3)
+                      .map(
+                        (item) => ShoppingTile(
+                          item,
+                          onToggleAutoAdd: (val) => ref
+                              .read(shoppingControllerProvider.notifier)
+                              .updateAutoAdd(item.id, val),
+                          onDelete: () => ref
+                              .read(shoppingControllerProvider.notifier)
+                              .deleteItem(item.id),
+                        ),
+                      ),
+                ],
+              ),
             ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: FilledButton.icon(
+            onPressed: () =>
+                ref.read(shoppingControllerProvider.notifier).addDemoItem(),
+            icon: const Icon(Icons.add),
+            label: const Text('Add item (demo/optimistic)'),
           ),
         ),
       ],
@@ -63,63 +108,22 @@ class _StoreHeader extends StatelessWidget {
   }
 }
 
-class ShoppingItem {
-  const ShoppingItem({
-    required this.name,
-    required this.qty,
-    required this.category,
-    required this.expiry,
-    required this.status,
-    required this.autoAdd,
-  });
+class _ErrorRetry extends StatelessWidget {
+  const _ErrorRetry({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
 
-  final String name;
-  final String qty;
-  final String category;
-  final String expiry;
-  final String status;
-  final bool autoAdd;
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(message),
+          const SizedBox(height: 8),
+          FilledButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    );
+  }
 }
-
-const _demoItems = [
-  ShoppingItem(
-    name: 'حليب 2L',
-    qty: 'x2',
-    category: 'أطعمة',
-    expiry: 'ينتهي خلال 2 يوم',
-    status: 'منخفض',
-    autoAdd: true,
-  ),
-  ShoppingItem(
-    name: 'بيض 12',
-    qty: 'x1',
-    category: 'أطعمة',
-    expiry: 'ينتهي خلال 4 أيام',
-    status: 'متوفر',
-    autoAdd: true,
-  ),
-  ShoppingItem(
-    name: 'دجاج كامل',
-    qty: 'x1',
-    category: 'أطعمة',
-    expiry: 'ينتهي خلال 1 يوم',
-    status: 'منتهي قريبًا',
-    autoAdd: false,
-  ),
-  ShoppingItem(
-    name: 'منظف أرضيات',
-    qty: 'x1',
-    category: 'تنظيف',
-    expiry: '—',
-    status: 'متوفر',
-    autoAdd: false,
-  ),
-  ShoppingItem(
-    name: 'مياه 6x1.5L',
-    qty: 'x1',
-    category: 'مشروبات',
-    expiry: '—',
-    status: 'نفد',
-    autoAdd: true,
-  ),
-];

@@ -3,9 +3,16 @@ import 'package:flutter/material.dart';
 import '../../domain/shopping_item.dart';
 
 class ShoppingTile extends StatelessWidget {
-  const ShoppingTile(this.item, {super.key});
+  const ShoppingTile(
+    this.item, {
+    super.key,
+    this.onToggleAutoAdd,
+    this.onDelete,
+  });
 
   final ShoppingItem item;
+  final ValueChanged<bool>? onToggleAutoAdd;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +49,12 @@ class ShoppingTile extends StatelessWidget {
             const SizedBox(height: 4),
             Switch(
               value: item.autoAdd,
-              onChanged: (_) {},
+              onChanged: onToggleAutoAdd,
               activeColor: cs.primary,
             ),
           ],
         ),
+        onLongPress: onDelete,
       ),
     );
   }

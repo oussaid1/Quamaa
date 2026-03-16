@@ -11,35 +11,61 @@ class StoresScreen extends ConsumerWidget {
     final storesAsync = ref.watch(storesProvider);
     final cs = Theme.of(context).colorScheme;
 
-    return storesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
-      data: (stores) => ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: stores.length,
-        itemBuilder: (_, i) {
-          final store = stores[i];
-          return Card(
-            child: ListTile(
-              title: Text(store.name),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 4),
-                  LinearProgressIndicator(
-                    value: store.ratio.clamp(0, 1),
-                    backgroundColor: cs.surfaceVariant,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${store.spent.toStringAsFixed(0)} / ${store.cap.toStringAsFixed(0)}',
-                  ),
-                  Text('Next due: ${store.nextDue}'),
-                ],
+    return RefreshIndicator(
+      onRefresh: () async => ref.refresh(storesProvider.future),
+      child: storesAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => _ErrorRetry(
+          message: '$err',
+          onRetry: () => ref.refresh(storesProvider),
+        ),
+        data: (stores) => ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: stores.length,
+          itemBuilder: (_, i) {
+            final store = stores[i];
+            return Card(
+              child: ListTile(
+                title: Text(store.name),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    LinearProgressIndicator(
+                      value: store.ratio.clamp(0, 1),
+                      backgroundColor: cs.surfaceVariant,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${store.spent.toStringAsFixed(0)} / ${store.cap.toStringAsFixed(0)}',
+                    ),
+                    Text('Next due: ${store.nextDue}'),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorRetry extends StatelessWidget {
+  const _ErrorRetry({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(message),
+          const SizedBox(height: 8),
+          FilledButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
       ),
     );
   }

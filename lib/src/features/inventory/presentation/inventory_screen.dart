@@ -9,24 +9,30 @@ class InventoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(inventoryItemsProvider);
-    return itemsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
-      data: (items) => ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: items.length,
-        itemBuilder: (_, i) {
-          final item = items[i];
-          final color = _statusColor(context, item.status);
-          return Card(
-            child: ListTile(
-              leading: CircleAvatar(backgroundColor: color, radius: 8),
-              title: Text(item.name),
-              subtitle: Text('${item.qty} • ${item.expiry}'),
-              trailing: Text(item.status),
-            ),
-          );
-        },
+    return RefreshIndicator(
+      onRefresh: () async => ref.refresh(inventoryItemsProvider.future),
+      child: itemsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => _ErrorRetry(
+          message: '$err',
+          onRetry: () => ref.refresh(inventoryItemsProvider),
+        ),
+        data: (items) => ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: items.length,
+          itemBuilder: (_, i) {
+            final item = items[i];
+            final color = _statusColor(context, item.status);
+            return Card(
+              child: ListTile(
+                leading: CircleAvatar(backgroundColor: color, radius: 8),
+                title: Text(item.name),
+                subtitle: Text('${item.qty} • ${item.expiry}'),
+                trailing: Text(item.status),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -43,5 +49,25 @@ class InventoryScreen extends ConsumerWidget {
       default:
         return cs.primary;
     }
+  }
+}
+
+class _ErrorRetry extends StatelessWidget {
+  const _ErrorRetry({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(message),
+          const SizedBox(height: 8),
+          FilledButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    );
   }
 }

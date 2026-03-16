@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'core/auth/auth_gate.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
-import 'features/home/home_shell.dart';
 
 class QuamaaApp extends StatefulWidget {
   const QuamaaApp({super.key});
@@ -31,7 +31,7 @@ class _QuamaaAppState extends State<QuamaaApp> {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: _themeController.mode,
-          home: HomeShell(themeController: _themeController),
+          home: AuthGate(themeController: _themeController),
         );
       },
     );
