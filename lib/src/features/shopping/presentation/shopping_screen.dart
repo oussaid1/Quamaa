@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/shopping_providers.dart';
 import '../widgets/shopping_tile.dart';
 
-class ShoppingListScreen extends StatelessWidget {
+class ShoppingListScreen extends ConsumerWidget {
   const ShoppingListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final filters = ['الكل', 'منخفض', 'نفد', 'منتهي قريبًا', 'المتجر'];
+    final itemsAsync = ref.watch(shoppingItemsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -26,15 +29,19 @@ class ShoppingListScreen extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            children: [
-              const _StoreHeader('كارفور'),
-              ..._demoItems.take(3).map((item) => ShoppingTile(item)),
-              const SizedBox(height: 12),
-              const _StoreHeader('بقالة الحي'),
-              ..._demoItems.skip(3).map((item) => ShoppingTile(item)),
-            ],
+          child: itemsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, _) => Center(child: Text('Error: $err')),
+            data: (items) => ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              children: [
+                const _StoreHeader('كارفور'),
+                ...items.take(3).map((item) => ShoppingTile(item)),
+                const SizedBox(height: 12),
+                const _StoreHeader('بقالة الحي'),
+                ...items.skip(3).map((item) => ShoppingTile(item)),
+              ],
+            ),
           ),
         ),
       ],

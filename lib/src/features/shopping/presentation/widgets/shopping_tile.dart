@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../shopping_screen.dart';
+import '../../domain/shopping_item.dart';
 
 class ShoppingTile extends StatelessWidget {
   const ShoppingTile(this.item, {super.key});

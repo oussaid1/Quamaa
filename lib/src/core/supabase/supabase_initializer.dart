@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// will fail until provided.
 class SupabaseInitializer {
   static bool _initialized = false;
+  static bool get isReady => _initialized;
 
   static Future<void> ensureInitialized() async {
     if (_initialized) return;
