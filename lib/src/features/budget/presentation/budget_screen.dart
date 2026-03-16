@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/budget_providers.dart';
+import '../providers/budget_controller.dart';
 
 class BudgetScreen extends ConsumerWidget {
   const BudgetScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summaryAsync = ref.watch(budgetSummaryProvider);
+    final summaryAsync = ref.watch(budgetControllerProvider);
     final cs = Theme.of(context).colorScheme;
 
     return RefreshIndicator(
-      onRefresh: () async => ref.refresh(budgetSummaryProvider.future),
+      onRefresh: () => ref.read(budgetControllerProvider.notifier).refresh(),
       child: summaryAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => _ErrorRetry(
           message: '$err',
-          onRetry: () => ref.refresh(budgetSummaryProvider),
+          onRetry: () => ref.read(budgetControllerProvider.notifier).refresh(),
         ),
         data: (summary) => ListView(
           padding: const EdgeInsets.all(16),
@@ -70,6 +70,14 @@ class BudgetScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () => ref
+                  .read(budgetControllerProvider.notifier)
+                  .addPayment(50, summary.categories.first.name),
+              icon: const Icon(Icons.add),
+              label: const Text('Add payment (demo optimistic)'),
             ),
           ],
         ),

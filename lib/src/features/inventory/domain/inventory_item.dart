@@ -22,4 +22,30 @@ class InventoryItem {
       status: map['status'] ?? 'ok',
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'qty': qty,
+      'expiry': expiry,
+      'status': status,
+    };
+  }
+
+  InventoryItem copyWith({
+    String? id,
+    String? name,
+    String? qty,
+    String? expiry,
+    String? status,
+  }) {
+    return InventoryItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      qty: qty ?? this.qty,
+      expiry: expiry ?? this.expiry,
+      status: status ?? this.status,
+    );
+  }
 }

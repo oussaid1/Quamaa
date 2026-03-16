@@ -5,13 +5,19 @@ class BudgetRepository {
   Future<BudgetSummary> fetchSummary() async {
     if (!SupabaseInitializer.isReady) return _demo;
 
-    final summaryRes = await SupabaseInitializer.client
+    final user = SupabaseInitializer.client.auth.currentUser;
+    final summaryQuery = SupabaseInitializer.client
         .from('budget_summary')
         .select()
         .maybeSingle();
-    final categoriesRes = await SupabaseInitializer.client
+    final categoriesQuery = SupabaseInitializer.client
         .from('budget_categories')
         .select();
+
+    final summaryRes = await summaryQuery;
+    final categoriesRes = user == null
+        ? await categoriesQuery
+        : await categoriesQuery.eq('user_id', user.id);
 
     final monthlyCap = (summaryRes?['monthly_cap'] as num?)?.toDouble() ?? 0;
     final spent = (summaryRes?['spent'] as num?)?.toDouble() ?? 0;
@@ -24,6 +30,19 @@ class BudgetRepository {
       spent: spent,
       categories: categories,
     );
+  }
+
+  Future<void> addPayment({
+    required double amount,
+    required String category,
+  }) async {
+    if (!SupabaseInitializer.isReady) return;
+    final user = SupabaseInitializer.client.auth.currentUser;
+    await SupabaseInitializer.client.from('budget_payments').insert({
+      'amount': amount,
+      'category': category,
+      if (user != null) 'user_id': user.id,
+    });
   }
 }
 

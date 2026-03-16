@@ -28,4 +28,22 @@ class StoreQuota {
       nextDue: map['next_due']?.toString() ?? '',
     );
   }
+
+  StoreQuota copyWith({
+    String? id,
+    String? name,
+    String? period,
+    double? cap,
+    double? spent,
+    String? nextDue,
+  }) {
+    return StoreQuota(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      period: period ?? this.period,
+      cap: cap ?? this.cap,
+      spent: spent ?? this.spent,
+      nextDue: nextDue ?? this.nextDue,
+    );
+  }
 }

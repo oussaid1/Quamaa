@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/stores_providers.dart';
+import '../providers/stores_controller.dart';
 
 class StoresScreen extends ConsumerWidget {
   const StoresScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final storesAsync = ref.watch(storesProvider);
+    final storesAsync = ref.watch(storesControllerProvider);
     final cs = Theme.of(context).colorScheme;
 
     return RefreshIndicator(
-      onRefresh: () async => ref.refresh(storesProvider.future),
+      onRefresh: () => ref.read(storesControllerProvider.notifier).refresh(),
       child: storesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => _ErrorRetry(
           message: '$err',
-          onRetry: () => ref.refresh(storesProvider),
+          onRetry: () => ref.read(storesControllerProvider.notifier).refresh(),
         ),
         data: (stores) => ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -41,6 +41,13 @@ class StoresScreen extends ConsumerWidget {
                     ),
                     Text('Next due: ${store.nextDue}'),
                   ],
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.add_card),
+                  tooltip: 'Add payment (demo)',
+                  onPressed: () => ref
+                      .read(storesControllerProvider.notifier)
+                      .addPayment(store.id, 25),
                 ),
               ),
             );

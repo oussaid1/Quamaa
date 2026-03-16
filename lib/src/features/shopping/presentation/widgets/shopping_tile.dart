@@ -43,14 +43,14 @@ class ShoppingTile extends StatelessWidget {
           ],
         ),
         trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(item.status, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 4),
             Switch(
               value: item.autoAdd,
               onChanged: onToggleAutoAdd,
               activeColor: cs.primary,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ],
         ),

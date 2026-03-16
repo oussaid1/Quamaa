@@ -16,6 +16,14 @@ class BudgetCategory {
       cap: (map['cap'] as num?)?.toDouble() ?? 0,
     );
   }
+
+  BudgetCategory copyWith({String? name, double? spent, double? cap}) {
+    return BudgetCategory(
+      name: name ?? this.name,
+      spent: spent ?? this.spent,
+      cap: cap ?? this.cap,
+    );
+  }
 }
 
 class BudgetSummary {
@@ -31,4 +39,16 @@ class BudgetSummary {
 
   double get remaining => monthlyCap - spent;
   double get ratio => monthlyCap == 0 ? 0 : spent / monthlyCap;
+
+  BudgetSummary copyWith({
+    double? monthlyCap,
+    double? spent,
+    List<BudgetCategory>? categories,
+  }) {
+    return BudgetSummary(
+      monthlyCap: monthlyCap ?? this.monthlyCap,
+      spent: spent ?? this.spent,
+      categories: categories ?? this.categories,
+    );
+  }
 }

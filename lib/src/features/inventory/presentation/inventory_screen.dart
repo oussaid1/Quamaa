@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/inventory_providers.dart';
+import '../providers/inventory_controller.dart';
 
 class InventoryScreen extends ConsumerWidget {
   const InventoryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemsAsync = ref.watch(inventoryItemsProvider);
+    final itemsAsync = ref.watch(inventoryControllerProvider);
     return RefreshIndicator(
-      onRefresh: () async => ref.refresh(inventoryItemsProvider.future),
+      onRefresh: () => ref.read(inventoryControllerProvider.notifier).refresh(),
       child: itemsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => _ErrorRetry(
           message: '$err',
-          onRetry: () => ref.refresh(inventoryItemsProvider),
+          onRetry: () =>
+              ref.read(inventoryControllerProvider.notifier).refresh(),
         ),
         data: (items) => ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -29,6 +30,9 @@ class InventoryScreen extends ConsumerWidget {
                 title: Text(item.name),
                 subtitle: Text('${item.qty} • ${item.expiry}'),
                 trailing: Text(item.status),
+                onLongPress: () => ref
+                    .read(inventoryControllerProvider.notifier)
+                    .delete(item.id),
               ),
             );
           },
