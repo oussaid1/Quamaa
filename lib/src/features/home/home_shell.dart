@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/theme_controller.dart';
+import '../budget/presentation/budget_screen.dart';
 import '../dashboard/presentation/dashboard_screen.dart';
+import '../inventory/presentation/inventory_screen.dart';
 import '../shopping/presentation/shopping_screen.dart';
+import '../stores/presentation/stores_screen.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key, required this.themeController});
@@ -16,7 +19,13 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
 
-  final _screens = const [DashboardScreen(), ShoppingListScreen()];
+  final _screens = const [
+    DashboardScreen(),
+    ShoppingListScreen(),
+    InventoryScreen(),
+    BudgetScreen(),
+    StoresScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +56,18 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: Icon(Icons.shopping_bag_outlined),
             label: 'Shopping',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.inventory_2_outlined),
+            label: 'Inventory',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            label: 'Budget',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.store_mall_directory_outlined),
+            label: 'Stores',
           ),
         ],
       ),
